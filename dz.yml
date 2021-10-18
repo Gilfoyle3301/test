@@ -1,0 +1,49 @@
+version: '3.1'
+
+volumes:
+  pg_project:
+
+services:
+  pg_db:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:4000
+    environment:
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=newspaper
+    volumes:
+      - pg_project:/var/lib/postgresql/data
+    networks:
+      - bridge
+    
+  scrapper:
+    container_name: scrapper
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: scrapper
+    ports:
+      - 4000:4000  
+    environment:
+      POSTGRES_HOST: pg_db
+    restart: always
+    links:
+      - pg_db
+    networks:
+      - bridge
+
+networks:
+  bridge:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.10.1.0/16
+         gateway: 172.10.1.1
+         aux_addresses:
+           pg_db: 172.10.1.10
+           scrapper: 172.10.1.20      
+                 
+
+    
